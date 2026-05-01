@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Simulador de Crédito | Premium</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #F0F2F5;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .simulator-card {
+            max-width: 900px;
+            width: 100%;
+            background: #FFFFFF;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+        }
+
+        /* Sistema de abas */
+        .tabs-container {
+            padding: 20px 24px 0 24px;
+            background: #FFFFFF;
+            border-bottom: 1px solid #E8ECF0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6B7A8A;
+            font-family: inherit;
+            flex: 1;
+            text-align: center;
+            letter-spacing: 0.3px;
+            min-width: 0;
+        }
+
+        .tab-btn.active {
+            background: #EFF3F8;
+            color: #1A5D8F;
+        }
+
+        /* Separadores visuais entre abas */
+        .tab-btn:not(:last-child) {
+            position: relative;
+        }
+        
+        .tab-btn:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            right: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 20px;
+            width: 1px;
+            background: #E0E6ED;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 28px 24px 28px 24px;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .tab-content.active-tab {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        /* Cabeçalho Premium */
+        .premium-header {
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #E8ECF0;
+        }
+
+        .premium-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1A2C3E;
+            letter-spacing: -0.3px;
+            margin-bottom: 6px;
+        }
+
+        .premium-subtitle {
+            font-size: 0.75rem;
+            color: #7A8B9F;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+        }
+
+        /* Formulário */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #2C3E50;
+        }
+
+        .limit-hint {
+            color: #8A9BB0;
+            font-weight: normal;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: #F8FAFD;
+            border-radius: 14px;
+            border: 1px solid #E2E8F0;
+            transition: all 0.2s;
+            padding: 4px 14px;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #1A5D8F;
+            box-shadow: 0 0 0 3px rgba(26, 93, 143, 0.08);
+            background: #FFFFFF;
+        }
+
+        .input-icon {
+            font-weight: 500;
+            color: #7A8B9F;
+            margin-right: 8px;
+            font-size: 0.9rem;
+        }
+
+        .input-wrapper input, .input-wrapper select {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 12px 0;
+            outline: none;
+            color: #1A2C3E;
+            font-family: inherit;
+        }
+
+        /* Slider de taxa */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            background: #F8FAFD;
+            border-radius: 14px;
+            border: 1px solid #E2E8F0;
+            padding: 4px 14px;
+        }
+
+        .slider {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            background: #E2E8F0;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #1A5D8F;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .taxa-value {
+            font-weight: 600;
+            color: #1A5D8F;
+            background: #EFF3F8;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .info-card {
+            background: #F8FAFD;
+            border-radius: 16px;
+            padding: 14px 18px;
+            margin: 16px 0;
+            border: 1px solid #E8ECF0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.85rem;
+        }
+
+        .info-label {
+            color: #7A8B9F;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .result-box {
+            background: #F8FAFD;
+            border-radius: 18px;
+            padding: 20px;
+            margin: 20px 0 16px 0;
+            border: 1px solid #E8ECF0;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: #7A8B9F;
+            font-weight: 500;
+        }
+
+        .result-amount {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1A5D8F;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .interest-text {
+            font-size: 0.7rem;
+            color: #8A9BB0;
+            text-align: right;
+            border-top: 1px solid #E2E8F0;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+
+        .calendar-box {
+            background: #F8FAFD;
+            border-radius: 16px;
+            border: 1px solid #E8ECF0;
+            padding: 14px 18px;
+            margin-top: 16px;
+        }
+
+        .calendar-title {
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: #7A8B9F;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .date-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 0.8rem;
+        }
+
+        .date-value {
+            font-weight: 600;
+            color: #2C3E50;
+            background: #FFFFFF;
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid #E2E8F0;
+        }
+
+        .btn-simulate {
+            width: 100%;
+            background: #1A5D8F;
+            border: none;
+            padding: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            border-radius: 44px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+            font-family: inherit;
+        }
+
+        .btn-simulate:hover {
+            background: #0E4A73;
+            transform: scale(0.98);
+        }
+
+        .footer-note {
+            font-size: 0.65rem;
+            text-align: center;
+            color: #8A9BB0;
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid #E8ECF0;
+        }
+
+        .range-value {
+            font-size: 0.7rem;
+            color: #1A5D8F;
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        @media (max-width: 650px) {
+            body { padding: 16px; }
+            .tab-content { padding: 20px; }
+            .result-amount { font-size: 1.3rem; }
+            .tab-btn { font-size: 0.7rem; padding: 8px 6px; }
+            .premium-title { font-size: 1.25rem; }
+            .tabs-container { padding: 16px 16px 0 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="simulator-card">
+    <div class="tabs-container">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="tab1">Crédito Flexível</button>
+            <button class="tab-btn" data-tab="tab2">Credifácil</button>
+            <button class="tab-btn" data-tab="tab3">Giro Semanal</button>
+            <button class="tab-btn" data-tab="tab4">Crédito Turbo</button>
+        </div>
+    </div>
+
+    <!-- ABA 1 - CRÉDITO FLEXÍVEL -->
+    <div id="tab1" class="tab-content active-tab">
+        <div class="premium-header">
+            <div class="premium-title">Crédito Flexível</div>
+            <div class="premium-subtitle">Empréstimo pessoal com taxas personalizadas</div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-label">
+                <span>Valor do empréstimo</span>
+                <span class="limit-hint">R$ 0 a R$ 5.000</span>
+            </div>
+            <div class="input-wrapper">
+                <span class="input-icon">R$</span>
+                <input type="number" id="flexAmount" value="0" step="100" min="0" max="5000">
+            </div>
+            <div class="range-value" id="flexRangeHint">0% do limite de R$ 5.000</div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-label">
+                <span>Taxa de juros mensal</span>
+                <span class="limit-hint">7,45% a 18,95%</span>
+            </div>
+            <div class="slider-container">
+                <input type="range" id="taxaSlider" class="slider" min="7.45" max="18.95" step="0.01" value="11.95">
+                <span id="taxaValueDisplay" class="taxa-value">11,95%</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-label">
+                <span>Número de parcelas</span>
+                <span class="limit-hint">1 a 12 vezes</span>
+            </div>
+            <div class="input-wrapper">
+                <span class="input-icon">📋</span>
+                <select id="flexParcelas">
+                    <option value="1">1 vez</option><option value="2">2 vezes</option><option value="3">3 vezes</option>
+                    <option value="4">4 vezes</option><option value="5">5 vezes</option><option value="6">6 vezes</option>
+                    <option value="7">7 vezes</option><option value="8">8 vezes</option><option value="9">9 vezes</option>
+                    <option value="10">10 vezes</option><option value="11">11 vezes</option><option value="12">12 vezes</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-row"><span class="info-label">Sistema de amortização</span><span class="info-value">Tabela Price (parcelas fixas)</span></div>
+            <div class="info-row"><span class="info-label">Período</span><span class="info-value">Mensal</span></div>
+        </div>
+
+        <div class="result-box">
+            <div class="result-row"><span class="result-label">Valor da parcela mensal</span><span class="result-amount" id="flexParcela">R$ 0,00</span></div>
+            <div class="total-row"><span>Total a pagar</span><strong id="flexTotal">R$ 0,00</strong></div>
+            <div class="interest-text" id="flexJuros">Juros totais: R$ 0,00</div>
+        </div>
+        <button class="btn-simulate" id="simularFlexBtn">Simular empréstimo</button>
+        <div class="footer-note">Taxa ajustável de 7,45% a 18,95% ao mês. Valor de R$ 0 a R$ 5.000. Parcelamento em até 12 vezes.</div>
+    </div>
+
+    <!-- ABA 2 - CREDIFÁCIL -->
+    <div id="tab2" class="tab-content">
+        <div class="premium-header">
+            <div class="premium-title">Credifácil</div>
+            <div class="premium-subtitle">Crédito quinzenal com taxa fixa de 12%</div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-label">
+                <span>Valor do empréstimo</span>
+                <span class="limit-hint">R$ 0 a R$ 2.000</span>
+            </div>
+            <div class="input-wrapper">
+                <span class="input-icon">R$</span>
+                <input type="number" id="credAmount" value="0" step="50" min="0" max="2000">
+            </div>
+            <div class="range-value" id="credRangeHint">0% do limite de R$ 2.000</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-row"><span class="info-label">Taxa quinzenal</span><span class="info-value">12,00% fixa</span></div>
+            <div class="info-row"><span class="info-label">Prazo</span><span class="info-value">Pagamento único em 15 dias</span></div>
+        </div>
+
+        <div class="result-box">
+            <div class="result-row"><span class="result-label">Parcela única (15 dias)</span><span class="result-amount" id="credParcela">R$ 0,00</span></div>
+            <div class="total-row"><span>Total a pagar</span><strong id="credTotal">R$ 0,00</strong></div>
+            <div class="interest-text" id="credJuros">Juros: R$ 0,00 (12% sobre R$ 0,00)</div>
+        </div>
+
+        <div class="calendar-box">
+            <div class="calendar-title">Previsão de vencimento</div>
+            <div class="date-line"><span>Data da simulação</span><span class="date-value" id="credDataContrato">--/--/----</span></div>
+            <div class="date-line"><span>Vencimento (+15 dias)</span><span class="date-value" id="credDataVenc">--/--/----</span></div>
+        </div>
+        <button class="btn-simulate" id="simularCredBtn">Simular empréstimo</button>
+        <div class="footer-note">Taxa fixa de 12% por período de 15 dias. Valor de R$ 0 a R$ 2.000. Vencimento quinzenal.</div>
+    </div>
+
+    <!-- ABA 3 - GIRO SEMANAL -->
+    <div id="tab3" class="tab-content">
+        <div class="premium-header">
+            <div class="premium-title">Giro Semanal</div>
+            <div class="premium-subtitle">Crédito rápido com pagamento semanal</div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-label">
+                <span>Valor do empréstimo</span>
+                <span class="limit-hint">R$ 0 a R$ 1.200</span>
+            </div>
+            <div class="input-wrapper">
+                <span class="input-icon">R$</span>
+                <input type="number" id="giroAmount" value="0" step="50" min="0" max="1200">
+            </div>
+            <div class="range-value" id="giroRangeHint">0% do limite de R$ 1.200</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-row"><span class="info-label">Fechamento</span><span class="info-value">Toda Segunda-feira</span></div>
+            <div class="info-row"><span class="info-label">Pagamento</span><span class="info-value">Toda Quarta-feira (D+2)</span></div>
+            <div class="info-row"><span class="info-label">Taxa por ciclo</span><span class="info-value">7,5% fixa</span></div>
+        </div>
+
+        <div class="result-box">
+            <div class="result-row"><span class="result-label">Valor a pagar (na quarta)</span><span class="result-amount" id="giroParcela">R$ 0,00</span></div>
+            <div class="total-row"><span>Total a pagar</span><strong id="giroTotal">R$ 0,00</strong></div>
+            <div class="interest-text" id="giroJuros">Juros: R$ 0,00 (7,5% sobre R$ 0,00)</div>
+        </div>
+
+        <div class="calendar-box">
+            <div class="calendar-title">Cronograma semanal</div>
+            <div class="date-line"><span>Fechamento (segunda)</span><span class="date-value" id="giroSegunda">--/--/----</span></div>
+            <div class="date-line"><span>Pagamento (quarta)</span><span class="date-value" id="giroQuarta">--/--/----</span></div>
+        </div>
+        <button class="btn-simulate" id="simularGiroBtn">Simular empréstimo</button>
+        <div class="footer-note">Giro Semanal: contratação na segunda-feira, pagamento na quarta-feira seguinte. Taxa fixa de 7,5%. Valores de R$ 0 a R$ 1.200.</div>
+    </div>
+
+    <!-- ABA 4 - CRÉDITO TURBO (25% fixo, pagamento único) -->
+    <div id="tab4" class="tab-content">
+        <div class="premium-header">
+            <div class="premium-title">Crédito Turbo</div>
+            <div class="premium-subtitle">Empréstimo rápido com taxa fixa de 25%</div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-label">
+                <span>Valor do empréstimo</span>
+                <span class="limit-hint">R$ 0 a R$ 3.000</span>
+            </div>
+            <div class="input-wrapper">
+                <span class="input-icon">R$</span>
+                <input type="number" id="turboAmount" value="0" step="100" min="0" max="3000">
+            </div>
+            <div class="range-value" id="turboRangeHint">0% do limite de R$ 3.000</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-row"><span class="info-label">Taxa mensal</span><span class="info-value">25,00% fixa</span></div>
+            <div class="info-row"><span class="info-label">Prazo</span><span class="info-value">Pagamento único em 30 dias</span></div>
+            <div class="info-row"><span class="info-label">Modalidade</span><span class="info-value">Sem parcelamento</span></div>
+        </div>
+
+        <div class="result-box">
+            <div class="result-row"><span class="result-label">Valor a pagar (30 dias)</span><span class="result-amount" id="turboParcela">R$ 0,00</span></div>
+            <div class="total-row"><span>Total a pagar</span><strong id="turboTotal">R$ 0,00</strong></div>
+            <div class="interest-text" id="turboJuros">Juros: R$ 0,00 (25% sobre R$ 0,00)</div>
+        </div>
+
+        <div class="calendar-box">
+            <div class="calendar-title">Previsão de vencimento</div>
+            <div class="date-line"><span>Data da simulação</span><span class="date-value" id="turboDataContrato">--/--/----</span></div>
+            <div class="date-line"><span>Vencimento (+30 dias)</span><span class="date-value" id="turboDataVenc">--/--/----</span></div>
+        </div>
+        <button class="btn-simulate" id="simularTurboBtn">Simular empréstimo</button>
+        <div class="footer-note">Taxa fixa de 25% ao mês. Valor de R$ 0 a R$ 3.000. Pagamento único após 30 dias. Sem parcelamento.</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ========= 1. CRÉDITO FLEXÍVEL =========
+        const flexAmount = document.getElementById('flexAmount');
+        const flexParcelasSelect = document.getElementById('flexParcelas');
+        const flexParcelaSpan = document.getElementById('flexParcela');
+        const flexTotalSpan = document.getElementById('flexTotal');
+        const flexJurosSpan = document.getElementById('flexJuros');
+        const simularFlexBtn = document.getElementById('simularFlexBtn');
+        const taxaSlider = document.getElementById('taxaSlider');
+        const taxaValueDisplay = document.getElementById('taxaValueDisplay');
+        const FLEX_MAX = 5000;
+
+        let currentTaxaFlex = 11.95;
+
+        function updateSliderGradient() {
+            const min = 7.45;
+            const max = 18.95;
+            const percent = ((currentTaxaFlex - min) / (max - min)) * 100;
+            taxaSlider.style.background = `linear-gradient(to right, #1A5D8F 0%, #1A5D8F ${percent}%, #E2E8F0 ${percent}%, #E2E8F0 100%)`;
+        }
+
+        function updateTaxa() {
+            currentTaxaFlex = parseFloat(taxaSlider.value);
+            taxaValueDisplay.innerText = currentTaxaFlex.toFixed(2) + '%';
+            updateSliderGradient();
+            calcularFlex();
+        }
+
+        taxaSlider.addEventListener('input', updateTaxa);
+        updateSliderGradient();
+
+        function calcularParcelaPrice(valor, taxaPercent, n) {
+            if (valor === 0 || n === 0) return 0;
+            const i = taxaPercent / 100;
+            const parcela = valor * (i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);
+            return parcela;
+        }
+
+        function calcularFlex() {
+            let val = parseFloat(flexAmount.value);
+            if (isNaN(val)) val = 0;
+            if (val > FLEX_MAX) val = FLEX_MAX;
+            if (val < 0) val = 0;
+            flexAmount.value = val;
+            const percentLimit = FLEX_MAX > 0 ? (val / FLEX_MAX) * 100 : 0;
+            document.getElementById('flexRangeHint').innerHTML = `${Math.round(percentLimit)}% do limite de R$ 5.000`;
+
+            const parcelas = parseInt(flexParcelasSelect.value);
+            const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            if (val === 0 || parcelas === 0) {
+                flexParcelaSpan.innerText = 'R$ 0,00';
+                flexTotalSpan.innerText = 'R$ 0,00';
+                flexJurosSpan.innerHTML = 'Juros totais: R$ 0,00';
+                return;
+            }
+
+            const parcela = calcularParcelaPrice(val, currentTaxaFlex, parcelas);
+            const total = parcela * parcelas;
+            const juros = total - val;
+            flexParcelaSpan.innerText = formatter.format(parcela);
+            flexTotalSpan.innerText = formatter.format(total);
+            flexJurosSpan.innerHTML = `Juros totais: ${formatter.format(juros)} (${currentTaxaFlex.toFixed(2)}% a.m. em ${parcelas}x)`;
+        }
+
+        flexAmount.addEventListener('input', calcularFlex);
+        flexAmount.addEventListener('blur', calcularFlex);
+        flexParcelasSelect.addEventListener('change', calcularFlex);
+        simularFlexBtn.addEventListener('click', calcularFlex);
+
+        // ========= 2. CREDIFÁCIL =========
+        const credAmount = document.getElementById('credAmount');
+        const credParcela = document.getElementById('credParcela');
+        const credTotal = document.getElementById('credTotal');
+        const credJuros = document.getElementById('credJuros');
+        const simularCredBtn = document.getElementById('simularCredBtn');
+        const credDataContrato = document.getElementById('credDataContrato');
+        const credDataVenc = document.getElementById('credDataVenc');
+        const CRED_MAX = 2000;
+        const TAXA_QUINZ = 0.12;
+
+        function calcularCred() {
+            let val = parseFloat(credAmount.value);
+            if (isNaN(val)) val = 0;
+            if (val > CRED_MAX) val = CRED_MAX;
+            if (val < 0) val = 0;
+            credAmount.value = val;
+            const percent = CRED_MAX > 0 ? (val / CRED_MAX) * 100 : 0;
+            document.getElementById('credRangeHint').innerHTML = `${Math.round(percent)}% do limite de R$ 2.000`;
+            
+            const juros = val * TAXA_QUINZ;
+            const montante = val + juros;
+            const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+            credParcela.innerText = formatter.format(montante);
+            credTotal.innerText = formatter.format(montante);
+            credJuros.innerHTML = `Juros: ${formatter.format(juros)} (12% sobre ${formatter.format(val)})`;
+        }
+
+        function atualizarCalendarCred() {
+            const hoje = new Date();
+            const venc = new Date(hoje);
+            venc.setDate(hoje.getDate() + 15);
+            const fmt = (d) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+            credDataContrato.innerText = fmt(hoje);
+            credDataVenc.innerText = fmt(venc);
+        }
+
+        credAmount.addEventListener('input', calcularCred);
+        credAmount.addEventListener('blur', calcularCred);
+        simularCredBtn.addEventListener('click', () => {
+            calcularCred();
+            atualizarCalendarCred();
+        });
+        atualizarCalendarCred();
+
+        // ========= 3. GIRO SEMANAL =========
+        const giroAmount = document.getElementById('giroAmount');
+        const giroParcela = document.getElementById('giroParcela');
+        const giroTotal = document.getElementById('giroTotal');
+        const giroJuros = document.getElementById('giroJuros');
+        const simularGiroBtn = document.getElementById('simularGiroBtn');
+        const giroSegundaSpan = document.getElementById('giroSegunda');
+        const giroQuartaSpan = document.getElementById('giroQuarta');
+        const GIRO_MAX = 1200;
+        const TAXA_SEM = 0.075;
+
+        function getNextMonday() {
+            const date = new Date();
+            const day = date.getDay();
+            const diff = (day === 1 ? 0 : (1 + 7 - day) % 7);
+            date.setDate(date.getDate() + diff);
+            return date;
+        }
+
+        function getWednesdayAfterMonday(monday) {
+            const wed = new Date(monday);
+            wed.setDate(monday.getDate() + 2);
+            return wed;
+        }
+
+        function atualizarCalendarGiro() {
+            const seg = getNextMonday();
+            const quar = getWednesdayAfterMonday(seg);
+            const fmt = (d) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+            giroSegundaSpan.innerText = fmt(seg);
+            giroQuartaSpan.innerText = fmt(quar);
+        }
+
+        function calcularGiro() {
+            let val = parseFloat(giroAmount.value);
+            if (isNaN(val)) val = 0;
+            if (val > GIRO_MAX) val = GIRO_MAX;
+            if (val < 0) val = 0;
+            giroAmount.value = val;
+            const percent = GIRO_MAX > 0 ? (val / GIRO_MAX) * 100 : 0;
+            document.getElementById('giroRangeHint').innerHTML = `${Math.round(percent)}% do limite de R$ 1.200`;
+            
+            const juros = val * TAXA_SEM;
+            const montante = val + juros;
+            const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+            giroParcela.innerText = formatter.format(montante);
+            giroTotal.innerText = formatter.format(montante);
+            giroJuros.innerHTML = `Juros: ${formatter.format(juros)} (7,5% sobre ${formatter.format(val)})`;
+        }
+
+        giroAmount.addEventListener('input', calcularGiro);
+        giroAmount.addEventListener('blur', calcularGiro);
+        simularGiroBtn.addEventListener('click', () => {
+            calcularGiro();
+            atualizarCalendarGiro();
+        });
+        atualizarCalendarGiro();
+
+        // ========= 4. CRÉDITO TURBO (25% fixo, pagamento único) =========
+        const turboAmount = document.getElementById('turboAmount');
+        const turboParcela = document.getElementById('turboParcela');
+        const turboTotal = document.getElementById('turboTotal');
+        const turboJuros = document.getElementById('turboJuros');
+        const simularTurboBtn = document.getElementById('simularTurboBtn');
+        const turboDataContrato = document.getElementById('turboDataContrato');
+        const turboDataVenc = document.getElementById('turboDataVenc');
+        const TURBO_MAX = 3000;
+        const TAXA_TURBO = 0.25;
+
+        function calcularTurbo() {
+            let val = parseFloat(turboAmount.value);
+            if (isNaN(val)) val = 0;
+            if (val > TURBO_MAX) val = TURBO_MAX;
+            if (val < 0) val = 0;
+            turboAmount.value = val;
+            const percent = TURBO_MAX > 0 ? (val / TURBO_MAX) * 100 : 0;
+            document.getElementById('turboRangeHint').innerHTML = `${Math.round(percent)}% do limite de R$ 3.000`;
+            
+            const juros = val * TAXA_TURBO;
+            const montante = val + juros;
+            const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+            turboParcela.innerText = formatter.format(montante);
+            turboTotal.innerText = formatter.format(montante);
+            turboJuros.innerHTML = `Juros: ${formatter.format(juros)} (25% sobre ${formatter.format(val)})`;
+        }
+
+        function atualizarCalendarTurbo() {
+            const hoje = new Date();
+            const venc = new Date(hoje);
+            venc.setDate(hoje.getDate() + 30);
+            const fmt = (d) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+            turboDataContrato.innerText = fmt(hoje);
+            turboDataVenc.innerText = fmt(venc);
+        }
+
+        turboAmount.addEventListener('input', calcularTurbo);
+        turboAmount.addEventListener('blur', calcularTurbo);
+        simularTurboBtn.addEventListener('click', () => {
+            calcularTurbo();
+            atualizarCalendarTurbo();
+        });
+        atualizarCalendarTurbo();
+
+        // ========= SISTEMA DE ABAS =========
+        const tabs = document.querySelectorAll('.tab-btn');
+        const contents = document.querySelectorAll('.tab-content');
+        
+        function switchTab(tabId) {
+            contents.forEach(content => content.classList.remove('active-tab'));
+            document.getElementById(tabId).classList.add('active-tab');
+            tabs.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+            if (tabId === 'tab1') calcularFlex();
+            if (tabId === 'tab2') { calcularCred(); atualizarCalendarCred(); }
+            if (tabId === 'tab3') { calcularGiro(); atualizarCalendarGiro(); }
+            if (tabId === 'tab4') { calcularTurbo(); atualizarCalendarTurbo(); }
+        }
+        
+        tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+
+        // Inicialização
+        calcularFlex();
+        calcularCred();
+        atualizarCalendarCred();
+        calcularGiro();
+        atualizarCalendarGiro();
+        calcularTurbo();
+        atualizarCalendarTurbo();
+    })();
+</script>
+</body>
+</html>
